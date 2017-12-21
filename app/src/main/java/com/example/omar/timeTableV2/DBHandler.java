@@ -7,14 +7,20 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 
 public class DBHandler extends SQLiteOpenHelper{
 
-    private static String[]         daysOfWeak        = {"Sunday", "Monday", "Tuesday", "Wednesday",
-                                                         "Thursday", "Friday", "Saturday"};
+    private static int VERSION = 1;
+
+    private static String[] daysOfWeak = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
+                                          "Friday", "Saturday"};
+
+    //date formats
     private static SimpleDateFormat sessionTimeFormat = new SimpleDateFormat("HH mm", Locale.US);
     private static SimpleDateFormat reminderFormat    = new SimpleDateFormat("HH mm dd MM yyyy",
                                                                              Locale.US);
@@ -22,10 +28,9 @@ public class DBHandler extends SQLiteOpenHelper{
                                                                              Locale.US);
 
 
-    public DBHandler(Context context, String name, SQLiteDatabase.CursorFactory factory,
-                     int version){
+    public DBHandler(Context context, SQLiteDatabase.CursorFactory factory){
 
-        super(context, name, factory, version);
+        super(context, "Timetable.db", factory, VERSION);
     }
 
 
@@ -44,7 +49,7 @@ public class DBHandler extends SQLiteOpenHelper{
         for(int i = 0; i < 7; i++){
             String sqlStatement = "CREATE TABLE IF NOT EXISTS " + daysOfWeak[i] +
                                   "( _ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                  "FOREIGN KEY (_SUBJ_ID) REFERENCES _SUBJECTS(_ID)," +
+                                  "_SUBJ_ID INTEGER," +
                                   "_START_TIME TEXT, _END_TIME TEXT," +
                                   "_TIME_UNTIL_NEXT INTEGER, _LOCATION TEXT);";
             sqLiteDatabase.execSQL(sqlStatement);
@@ -54,14 +59,14 @@ public class DBHandler extends SQLiteOpenHelper{
         //stores all tasks
         sqLiteDatabase.execSQL(
                 "CREATE TABLE  IF NOT EXISTS _TASKS ( _ID INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "FOREIGN KEY (_SUBJ_ID) REFERENCES _SUBJECTS(_ID), _TITLE TEXT, _DESCRIPTION TEXT, " +
+                "_SUBJ_ID INTEGER, _TITLE TEXT, _DESCRIPTION TEXT, " +
                 "_SET_DATE TEXT, _DUE_DATE TEXT);");
 
         //create reminders table
         //stores reminders for tasks
         sqLiteDatabase.execSQL(
                 "CREATE TABLE IF NOT EXISTS _REMINDERS ( _ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "FOREIGN KEY (_TASK_ID) REFERENCES _TASKS (_ID), _TIME TEXT);");
+                "_TASK_ID INTEGER, _TIME TEXT);");
 
     }
 
@@ -72,9 +77,10 @@ public class DBHandler extends SQLiteOpenHelper{
     }
 
 
+    //adds a new subject
     public void addSubject(String subj){
 
-        //store values to be addedd
+        //store values to be added
         ContentValues values = new ContentValues();
         values.put("_NAME", subj);
 
@@ -82,6 +88,29 @@ public class DBHandler extends SQLiteOpenHelper{
         SQLiteDatabase db = getWritableDatabase();
         db.insert("_SUBJECTS", null, values);
         db.close();
+    }
+
+
+    //gets all subject names
+    public List<String> getSubjects(){
+
+        SQLiteDatabase dbRead = getReadableDatabase();
+        String         sql    = "SELECT _NAME FROM _SUBJECTS WHERE 1";
+
+        Cursor c = dbRead.rawQuery(sql, null);
+
+        List<String> subjects = new ArrayList<>();
+
+        //moves to first row
+        c.moveToFirst();
+        //checks if not after last (before last or on last)
+        while(!c.isAfterLast()){
+            subjects.add(c.getString(0));
+            c.moveToNext();
+        }
+
+        c.close();
+        return subjects;
     }
 
 
