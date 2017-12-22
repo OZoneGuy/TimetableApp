@@ -52,6 +52,7 @@ public class NewSubjectDialogue extends Dialog{
                 } catch(NullPointerException e) {
                     subjName.clearFocus();
                 }
+                subjName.setText("");
                 dismiss();
             }
         });

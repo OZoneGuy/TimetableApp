@@ -49,8 +49,7 @@ public class DBHandler extends SQLiteOpenHelper{
         for(int i = 0; i < 7; i++){
             String sqlStatement = "CREATE TABLE IF NOT EXISTS " + daysOfWeak[i] +
                                   "( _ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                  "_SUBJ_ID INTEGER," +
-                                  "_START_TIME TEXT, _END_TIME TEXT," +
+                                  "_SUBJ_ID INTEGER," + "_START_TIME TEXT, _END_TIME TEXT," +
                                   "_TIME_UNTIL_NEXT INTEGER, _LOCATION TEXT);";
             sqLiteDatabase.execSQL(sqlStatement);
         }
@@ -111,6 +110,14 @@ public class DBHandler extends SQLiteOpenHelper{
 
         c.close();
         return subjects;
+    }
+
+
+    public void clearDay(String day){
+
+        SQLiteDatabase dbWrite = getWritableDatabase();
+        dbWrite.delete(day, "1", null);
+        dbWrite.close();
     }
 
 
@@ -184,14 +191,15 @@ public class DBHandler extends SQLiteOpenHelper{
     private int getSubjectID(String subj) throws DoesNotExist{
 
         SQLiteDatabase dbRead = getReadableDatabase();
-        Cursor c = dbRead.rawQuery("SELECT _ID FROM _SUBJECTS WHERE _ NAME = " + subj, null);
+        Cursor c = dbRead
+                .rawQuery("SELECT _ID FROM _SUBJECTS WHERE _NAME = \"" + subj + "\"", null);
 
         int id;
 
         if(c.getCount() > 0){
             c.moveToFirst();
-            c.close();
             id = c.getInt(0);
+            c.close();
         } else{
             c.close();
             throw new DoesNotExist("Subject does not exist: " + subj);

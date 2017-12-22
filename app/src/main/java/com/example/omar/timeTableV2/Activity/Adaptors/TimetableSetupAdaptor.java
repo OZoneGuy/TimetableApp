@@ -15,27 +15,32 @@ import android.widget.TimePicker;
 import com.example.omar.timeTableV2.DBHandler;
 import com.example.omar.timeTableV2.R;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 
 public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAdaptor.ViewHolder>{
 
+    private SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.US);
     private Context   context;
     private DBHandler dbHandler;
     private int       itemCount;
-    private Spinner   subjectSpinner;
     private List<String> subjectList = new ArrayList<>();
+    private List<Date>   startTimes  = new ArrayList<>();
+    private List<Date>   endTimes    = new ArrayList<>();
 
 
     public TimetableSetupAdaptor(Context context){
 
         this.context = context;
         dbHandler = new DBHandler(context, null);
-        itemCount = 0;
+        itemCount = 1;
     }
 
 
@@ -62,10 +67,17 @@ public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAd
                                                   subjects);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         holder.subject.setAdapter(adapter);
-        subjectSpinner = holder.subject;
 
+        try {
+            holder.subject.setSelection(subjects.indexOf(subjectList.get(position)));
+            holder.startTime.setText(sdf.format(startTimes.get(position)));
+            holder.endTime.setText(sdf.format(endTimes.get(position)));
+        } catch(IndexOutOfBoundsException ignore) {
 
-        subjectSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+        }
+
+        //insert session name into list when selected
+        holder.subject.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l){
 
@@ -76,9 +88,7 @@ public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAd
                     }
                     try {
                         subjectList.remove(p);
-                    } catch(IndexOutOfBoundsException e) {
-                        subjectList.add(subjects.get(i));
-                        return;
+                    } catch(IndexOutOfBoundsException ignore) {
                     }
                     subjectList.add(subjects.get(i));
 
@@ -92,6 +102,73 @@ public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAd
             }
         });
 
+        holder.startTime.setText(sdf.format(Calendar.getInstance().getTime()));
+        holder.endTime.setText(sdf.format(Calendar.getInstance().getTime()));
+
+        //click listeners popup a time picker to choose session start and end times.
+        //setup click listeners
+
+        //start time
+        holder.startTime.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+
+                setTime(holder.startTime, p, startTimes);
+            }
+        });
+
+        //end time
+        holder.endTime.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+
+                setTime(holder.endTime, p, endTimes);
+            }
+        });
+    }
+
+
+    //sets text view value with selected time
+    //opens a time picker dialogue
+    private void setTime(final TextView textView, final int position, final List<Date> list){
+
+        //setup time
+        final Calendar calendar = Calendar.getInstance();
+
+        try {
+            calendar.setTime(sdf.parse(textView.getText().toString()));
+        } catch(ParseException ignore) {
+        }
+
+        int h = calendar.get(Calendar.HOUR_OF_DAY);
+        int m = calendar.get(Calendar.MINUTE);
+
+        TimePickerDialog timePickerDialog;
+        timePickerDialog = new TimePickerDialog(context, new TimePickerDialog.OnTimeSetListener(){
+            @Override
+            public void onTimeSet(TimePicker timePicker, int hour, int minute){
+
+                //set date time
+                //times are selected for session start/end
+                calendar.set(Calendar.HOUR_OF_DAY, hour);
+                calendar.set(Calendar.MINUTE, minute);
+
+                //text view value is set from sdf and calender time
+                textView.setText(sdf.format(calendar.getTime()));
+
+                Date time = calendar.getTime();
+
+                try {
+                    list.remove(position);
+                } catch(IndexOutOfBoundsException e) {
+                    list.add(time);
+                    return;
+                }
+                list.add(position, time);
+
+            }
+        }, h, m, false);
+        timePickerDialog.show();
     }
 
 
@@ -99,6 +176,64 @@ public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAd
     public int getItemCount(){
 
         return itemCount;
+    }
+
+
+    void removeSession(int position){
+
+        try {
+            subjectList.remove(position);
+            startTimes.remove(position);
+            endTimes.remove(position);
+        } catch(IndexOutOfBoundsException ignore) {
+
+        }
+        notifyItemRemoved(position);
+
+        itemCount--;
+    }
+
+
+    void moveSession(int current, int target){
+
+        try {
+            Collections.swap(subjectList, current, target);
+            Collections.swap(startTimes, current, target);
+            Collections.swap(endTimes, current, target);
+        } catch(IndexOutOfBoundsException ignore) {
+
+        }
+        notifyItemMoved(current, target);
+    }
+
+
+    public void refreshView(){
+
+        itemCount = 1;
+        subjectList.clear();
+        endTimes.clear();
+        startTimes.clear();
+
+        notifyDataSetChanged();
+
+    }
+
+
+    public List<String> getSubjectList(){
+
+        return subjectList;
+    }
+
+
+    public List<Date> getStartTime(){
+
+        return startTimes;
+    }
+
+
+    public List<Date> getEndTime(){
+
+        return endTimes;
     }
 
 
@@ -117,60 +252,6 @@ public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAd
             endTime = (TextView) itemView.findViewById(R.id.end_time_text);
             subject = (Spinner) itemView.findViewById(R.id.subject_spinner);
 
-
-            //*click listeners popup a time picker to choose session start and end times.
-            //setup click listeners
-            //start time
-            startTime.setOnClickListener(new View.OnClickListener(){
-                @Override
-                public void onClick(View view){
-
-                    setTime(startTime);
-                }
-            });
-            //end time
-            endTime.setOnClickListener(new View.OnClickListener(){
-                @Override
-                public void onClick(View view){
-
-                    setTime(endTime);
-                }
-            });
-        }
-
-
-        //sets text view value with selected time
-        //opens a time picker dialogue
-        private void setTime(final TextView textView){
-
-            //setup time
-            final Calendar calendar = Calendar.getInstance();
-            int            h        = calendar.get(Calendar.HOUR_OF_DAY);
-            int            m        = calendar.get(Calendar.MINUTE);
-
-            TimePickerDialog timePickerDialog;
-            timePickerDialog = new TimePickerDialog(context,
-                                                    new TimePickerDialog.OnTimeSetListener(){
-                                                        @Override
-                                                        public void onTimeSet(TimePicker timePicker,
-                                                                              int hour, int minute){
-
-                                                            //create simple date format to format date
-                                                            SimpleDateFormat sdf = new SimpleDateFormat(
-                                                                    "hh:mm a", Locale.US);
-
-                                                            //set date time
-                                                            //times are selected for session start/end
-                                                            calendar.set(Calendar.HOUR_OF_DAY,
-                                                                         hour);
-                                                            calendar.set(Calendar.MINUTE, minute);
-
-                                                            //text view value is set from sdf and calender time
-                                                            textView.setText(
-                                                                    sdf.format(calendar.getTime()));
-                                                        }
-                                                    }, h, m, true);
-            timePickerDialog.show();
         }
     }
 }

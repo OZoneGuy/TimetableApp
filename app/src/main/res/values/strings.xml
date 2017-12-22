@@ -14,4 +14,6 @@
     <string name="end_time">End Time:</string>
     <string name="add_new_subject">Add New Subject</string>
     <string name="day">Day:</string>
+    <string name="save">Save</string>
+    <string name="done">Done</string>
 </resources>
