@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -121,6 +122,23 @@ public class DBHandler extends SQLiteOpenHelper{
     }
 
 
+    public boolean isDayDone(String day){
+
+        boolean isDone;
+
+        SQLiteDatabase dbRead = getReadableDatabase();
+        Cursor         c      = dbRead.rawQuery("SELECT * FROM " + day + " WHERE 1", null);
+        isDone = c.getCount() > 0;
+        c.close();
+
+        return isDone;
+    }
+
+
+    //sessions
+
+
+    //add session
     public void addSession(String day, String subj, Date startTime, Date endTime){
 
         ContentValues  values  = new ContentValues();
@@ -144,6 +162,90 @@ public class DBHandler extends SQLiteOpenHelper{
         values.put("_END_TIME", endTimeString);
         dbWrite.insert(day, null, values);
         dbWrite.close();
+    }
+
+    //get all
+
+
+    //sessions
+    public List<String> getSessionNames(String day){
+
+        List<String>  sessions   = new ArrayList<>();
+        List<Integer> sessionIDs = new ArrayList<>();
+
+        SQLiteDatabase dbRead = getReadableDatabase();
+        Cursor         c      = dbRead.rawQuery("SELECT _SUBJ_ID FROM " + day + " WHERE 1", null);
+
+        if(c.getCount() > 0){
+            c.moveToFirst();
+            while(!c.isAfterLast()){
+                sessionIDs.add(c.getInt(0));
+                c.moveToNext();
+            }
+        }
+        c.close();
+
+        for(int id : sessionIDs){
+            try {
+                sessions.add(getSubjectName(id));
+            } catch(DoesNotExist doesNotExist) {
+                doesNotExist.printStackTrace();
+            }
+
+        }
+
+        return sessions;
+    }
+
+
+    //start Times
+    public List<Date> getStartTimes(String day){
+
+        List<Date> startTimes = new ArrayList<>();
+
+        SQLiteDatabase dbRead = getReadableDatabase();
+        Cursor         c      = dbRead
+                .rawQuery("SELECT _START_TIME FROM " + day + " WHERE 1", null);
+
+        c.moveToFirst();
+
+        while(!c.isAfterLast()){
+            try {
+                startTimes.add(sessionTimeFormat.parse(c.getString(0)));
+            } catch(ParseException e) {
+                e.printStackTrace();
+            }
+            c.moveToNext();
+        }
+
+        c.close();
+
+        return startTimes;
+    }
+
+
+    //end Times
+    public List<Date> getEndTimes(String day){
+
+        List<Date> endTimes = new ArrayList<>();
+
+        SQLiteDatabase dbRead = getReadableDatabase();
+        Cursor         c      = dbRead.rawQuery("SELECT _END_TIME FROM " + day + " WHERE 1", null);
+
+        c.moveToFirst();
+
+        while(!c.isAfterLast()){
+            try {
+                endTimes.add(sessionTimeFormat.parse(c.getString(0)));
+            } catch(ParseException e) {
+                e.printStackTrace();
+            }
+            c.moveToNext();
+        }
+
+        c.close();
+
+        return endTimes;
     }
 
 
@@ -206,6 +308,27 @@ public class DBHandler extends SQLiteOpenHelper{
         }
 
         return id;
+    }
+
+
+    private String getSubjectName(int ID) throws DoesNotExist{
+
+        String name;
+
+        SQLiteDatabase dbRead = getReadableDatabase();
+        Cursor         c      = dbRead
+                .rawQuery("SELECT _NAME FROM _SUBJECTS WHERE _ID = " + ID, null);
+
+        if(c.getCount() > 0){
+            c.moveToFirst();
+            name = c.getString(0);
+        } else{
+            throw new DoesNotExist("Subject ID: " + ID + " Does not exist in Database");
+        }
+
+        c.close();
+
+        return name;
     }
 
 

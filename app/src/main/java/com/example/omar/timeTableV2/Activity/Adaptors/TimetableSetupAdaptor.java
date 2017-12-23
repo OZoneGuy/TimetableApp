@@ -68,6 +68,11 @@ public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAd
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         holder.subject.setAdapter(adapter);
 
+        holder.startTime.setText(sdf.format(Calendar.getInstance().getTime()));
+        holder.endTime.setText(sdf.format(Calendar.getInstance().getTime()));
+
+        holder.sessionNum.setText(String.valueOf(position + 1));
+
         try {
             holder.subject.setSelection(subjects.indexOf(subjectList.get(position)));
             holder.startTime.setText(sdf.format(startTimes.get(position)));
@@ -89,8 +94,9 @@ public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAd
                     try {
                         subjectList.remove(p);
                     } catch(IndexOutOfBoundsException ignore) {
+                        subjectList.add(subjects.get(i));
                     }
-                    subjectList.add(subjects.get(i));
+                    subjectList.add(p, subjects.get(i));
 
                 }
             }
@@ -102,8 +108,6 @@ public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAd
             }
         });
 
-        holder.startTime.setText(sdf.format(Calendar.getInstance().getTime()));
-        holder.endTime.setText(sdf.format(Calendar.getInstance().getTime()));
 
         //click listeners popup a time picker to choose session start and end times.
         //setup click listeners
@@ -237,9 +241,21 @@ public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAd
     }
 
 
+    public void setLists(List<String> subjectList, List<Date> startTimes, List<Date> endTimes){
+
+        itemCount = subjectList.size();
+
+        this.subjectList = subjectList;
+        this.startTimes = startTimes;
+        this.endTimes = endTimes;
+
+        notifyDataSetChanged();
+    }
+
+
     class ViewHolder extends RecyclerView.ViewHolder{
 
-        TextView startTime, endTime;
+        TextView startTime, endTime, sessionNum;
         Spinner subject;
 
 
@@ -250,6 +266,7 @@ public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAd
             //connects views to variables
             startTime = (TextView) itemView.findViewById(R.id.start_time_text);
             endTime = (TextView) itemView.findViewById(R.id.end_time_text);
+            sessionNum = (TextView) itemView.findViewById(R.id.stp_session_no);
             subject = (Spinner) itemView.findViewById(R.id.subject_spinner);
 
         }

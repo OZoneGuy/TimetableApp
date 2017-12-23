@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 
 public class TimetableSetup extends AppCompatActivity implements NewSubjectDialogue.NewSubject{
@@ -65,9 +66,18 @@ public class TimetableSetup extends AppCompatActivity implements NewSubjectDialo
 
 
         //setup spinner adaptor
+
+        for(String day : days){
+            if(dbHandler.isDayDone(day)){
+                Collections.replaceAll(days, day, day + " (Done)");
+            }
+        }
+
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, days);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         daySpinner.setAdapter(adapter);
+
+        updateCurrentAdaptor();
 
         //on item select listener
         daySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
@@ -86,6 +96,7 @@ public class TimetableSetup extends AppCompatActivity implements NewSubjectDialo
 
                                                   timetableSetupAdaptor.refreshView();
                                                   currentSpinnerSelection = i;
+                                                  updateCurrentAdaptor();
                                               }
                                           });
                     alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "No",
@@ -162,8 +173,38 @@ public class TimetableSetup extends AppCompatActivity implements NewSubjectDialo
 
         switch(item.getItemId()){
             case R.id.save_table:
-                //todo: save finfish status in shared preferences and go to main activity
-                //TODO: create a main activity
+                /*todo: save finfish status in shared preferences and go to main activity
+                  TODO: create a main activity
+                */
+
+                AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+                alertDialog.setMessage("Are you done with the set up?");
+                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Yes",
+                                      new DialogInterface.OnClickListener(){
+                                          @Override
+                                          public void onClick(DialogInterface dialogInterface,
+                                                              int i){
+
+                                              Snackbar snackbar = Snackbar
+                                                      .make(findViewById(R.id.root_setup),
+                                                            "You said Yes!", Snackbar.LENGTH_SHORT);
+                                              snackbar.show();
+                                          }
+                                      });
+                alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "No",
+                                      new DialogInterface.OnClickListener(){
+                                          @Override
+                                          public void onClick(DialogInterface dialogInterface,
+                                                              int i){
+
+                                              Snackbar snackbar = Snackbar
+                                                      .make(findViewById(R.id.root_setup),
+                                                            "You said No!", Snackbar.LENGTH_SHORT);
+                                              snackbar.show();
+                                          }
+                                      });
+
+                alertDialog.show();
                 return true;
             default:
                 return false;
@@ -173,15 +214,20 @@ public class TimetableSetup extends AppCompatActivity implements NewSubjectDialo
 
     void saveSessions(){
 
-        dbHandler.clearDay(daySpinner.getSelectedItem().toString());
+        String day = daySpinner.getSelectedItem().toString();
+
+        if(Objects.equals(day.substring(day.length() - 6, day.length()), "(Done)")){
+            day = day.substring(0, day.length() - 7);
+        }
+
+        dbHandler.clearDay(day);
 
         List<String> subjects   = timetableSetupAdaptor.getSubjectList();
         List<Date>   endTimes   = timetableSetupAdaptor.getEndTime();
         List<Date>   startTimes = timetableSetupAdaptor.getStartTime();
 
         for(int i = 0; i < subjects.size(); i++){
-            dbHandler.addSession(daySpinner.getSelectedItem().toString(), subjects.get(i),
-                                 startTimes.get(i), endTimes.get(i));
+            dbHandler.addSession(day, subjects.get(i), startTimes.get(i), endTimes.get(i));
         }
 
     }
@@ -189,10 +235,31 @@ public class TimetableSetup extends AppCompatActivity implements NewSubjectDialo
 
     void updateDaysList(){
 
-        Collections.replaceAll(days, daySpinner.getSelectedItem().toString(),
-                               daySpinner.getSelectedItem().toString() + " (Done)");
-        adapter.notifyDataSetChanged();
+        String day = daySpinner.getSelectedItem().toString();
 
+        if(!Objects.equals(day.substring(day.length() - 6, day.length()), "(Done)")){
+            Collections.replaceAll(days, daySpinner.getSelectedItem().toString(),
+                                   daySpinner.getSelectedItem().toString() + " (Done)");
+            adapter.notifyDataSetChanged();
+        }
+
+
+    }
+
+
+    void updateCurrentAdaptor(){
+
+        String day = daySpinner.getSelectedItem().toString();
+
+        if(Objects.equals(day.substring(day.length() - 6, day.length()), "(Done)")){
+            day = day.substring(0, day.length() - 7);
+        }
+        if(dbHandler.isDayDone(day)){
+            List<String> names      = dbHandler.getSessionNames(day);
+            List<Date>   startTimes = dbHandler.getStartTimes(day);
+            List<Date>   endTimes   = dbHandler.getEndTimes(day);
+            timetableSetupAdaptor.setLists(names, startTimes, endTimes);
+        }
     }
 
 
