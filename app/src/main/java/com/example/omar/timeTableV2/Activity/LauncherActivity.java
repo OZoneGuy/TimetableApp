@@ -1,5 +1,6 @@
 package com.example.omar.timeTableV2.Activity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,6 +15,7 @@ public class LauncherActivity extends AppCompatActivity{
 
     MiscData miscData = MiscData.getInstance();
 
+    @SuppressLint("HandlerLeak")
     Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg){
@@ -22,6 +24,7 @@ public class LauncherActivity extends AppCompatActivity{
 
             switch(done){
                 case "yes":
+                    startActivity(new Intent(LauncherActivity.this, Timetable.class));
                     finish();
                     break;
                 case "no":
@@ -50,6 +53,8 @@ public class LauncherActivity extends AppCompatActivity{
         Runnable run = new Runnable(){
             @Override
             public void run(){
+
+                miscData.doneSetup(LauncherActivity.this);
 
                 if(miscData.isDone(LauncherActivity.this)){
                     message.obj = "yes";

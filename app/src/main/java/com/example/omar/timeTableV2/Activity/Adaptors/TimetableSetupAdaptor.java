@@ -61,8 +61,10 @@ public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAd
 
         //setup spinner values
         final List<String> subjects = new ArrayList<>();
-        subjects.add("Select...");
         subjects.addAll(dbHandler.getSubjects());
+        Collections.sort(subjects);
+        subjects.add(0, "Select...");
+
         ArrayAdapter adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item,
                                                   subjects);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -95,6 +97,7 @@ public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAd
                         subjectList.remove(p);
                     } catch(IndexOutOfBoundsException ignore) {
                         subjectList.add(subjects.get(i));
+                        return;
                     }
                     subjectList.add(p, subjects.get(i));
 
@@ -185,16 +188,21 @@ public class TimetableSetupAdaptor extends RecyclerView.Adapter<TimetableSetupAd
 
     void removeSession(int position){
 
-        try {
-            subjectList.remove(position);
-            startTimes.remove(position);
-            endTimes.remove(position);
-        } catch(IndexOutOfBoundsException ignore) {
+        if(itemCount > 1){
+            try {
+                subjectList.remove(position);
+                startTimes.remove(position);
+                endTimes.remove(position);
+            } catch(IndexOutOfBoundsException ignore) {
 
+            }
+//            notifyItemRemoved(position);
+            notifyDataSetChanged();
+            itemCount--;
+        } else{
+            notifyItemChanged(position);
         }
-        notifyItemRemoved(position);
 
-        itemCount--;
     }
 
 

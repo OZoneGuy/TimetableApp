@@ -32,4 +32,14 @@ public class MiscData{
         pref = context.getSharedPreferences(preference, Context.MODE_PRIVATE);
         return pref.getBoolean(isDone, false);
     }
+
+
+    public void doneSetup(Context context){
+
+        pref = context.getSharedPreferences(preference, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean(MiscData.isDone, true);
+        editor.apply();
+
+    }
 }

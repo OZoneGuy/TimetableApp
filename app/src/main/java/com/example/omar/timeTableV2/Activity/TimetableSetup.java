@@ -1,6 +1,7 @@
 package com.example.omar.timeTableV2.Activity;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
@@ -22,6 +23,7 @@ import com.example.omar.timeTableV2.Activity.Adaptors.SetupTouchHelper;
 import com.example.omar.timeTableV2.Activity.Adaptors.TimetableSetupAdaptor;
 import com.example.omar.timeTableV2.Activity.Dialogue.NewSubjectDialogue;
 import com.example.omar.timeTableV2.DBHandler;
+import com.example.omar.timeTableV2.MiscData;
 import com.example.omar.timeTableV2.R;
 
 import java.util.Arrays;
@@ -185,10 +187,10 @@ public class TimetableSetup extends AppCompatActivity implements NewSubjectDialo
                                           public void onClick(DialogInterface dialogInterface,
                                                               int i){
 
-                                              Snackbar snackbar = Snackbar
-                                                      .make(findViewById(R.id.root_setup),
-                                                            "You said Yes!", Snackbar.LENGTH_SHORT);
-                                              snackbar.show();
+                                              MiscData.getInstance().doneSetup(TimetableSetup.this);
+                                              startActivity(new Intent(TimetableSetup.this,
+                                                                       Timetable.class));
+                                              finish();
                                           }
                                       });
                 alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "No",
