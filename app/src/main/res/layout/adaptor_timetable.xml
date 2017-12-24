@@ -18,8 +18,9 @@
         <TextView
             android:id="@+id/txt_session_end"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:layout_alignParentEnd="true"
-            android:layout_below="@id/txt_session_start" android:text="TextView"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true" android:text="TextView"
             tools:ignore="HardcodedText"/>
         <TextView
             android:id="@+id/txt_session_name"

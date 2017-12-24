@@ -59,6 +59,7 @@ public class TimetableAdaptor extends RecyclerView.Adapter<TimetableAdaptor.View
     public void onBindViewHolder(ViewHolder holder, int position){
 
         setBottomMargin(holder.parent, position);
+        setHeight(holder.parent, position);
 
         holder.sessionName.setText(sessionNames.get(position));
         holder.sessionStart.setText(sdf.format(startTimes.get(position)));
@@ -84,11 +85,25 @@ public class TimetableAdaptor extends RecyclerView.Adapter<TimetableAdaptor.View
 
         Resources r = context.getResources();
 
-        int bottomMargin = timeUntilNext.get(position) == 0 ? 8 : timeUntilNext.get(position) * 5;
+        int bottomMargin = timeUntilNext.get(position) == 0 ? 8 : timeUntilNext.get(position) * 2;
         bottomMargin = (int) TypedValue
                 .applyDimension(TypedValue.COMPLEX_UNIT_DIP, bottomMargin, r.getDisplayMetrics());
         lp.setMargins(leftMargin, topMargin, rightMargin, bottomMargin);
 
+
+    }
+
+
+    private void setHeight(View v, int position){
+
+        long length = endTimes.get(position).getTime() - startTimes.get(position).getTime();
+        length /= 60000;
+
+        Resources r = context.getResources();
+        length = length <= 10 ? 10 : length * 2;
+
+        v.getLayoutParams().height = (int) TypedValue
+                .applyDimension(TypedValue.COMPLEX_UNIT_DIP, length, r.getDisplayMetrics());
     }
 
 
