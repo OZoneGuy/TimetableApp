@@ -160,6 +160,19 @@ public class DBHandler extends SQLiteOpenHelper{
         values.put("_SUBJ_ID", subjID);
         values.put("_START_TIME", startTimeString);
         values.put("_END_TIME", endTimeString);
+
+        List<Date> endTimes = getEndTimes(day);
+
+        ContentValues oldValues = new ContentValues();
+
+        if(endTimes.size() != 0){
+            long diff = startTime.getTime() - endTimes.get(endTimes.size() - 1).getTime();
+            diff /= 60000;
+            oldValues.put("_TIME_UNTIL_NEXT", diff);
+            dbWrite.update(day, oldValues, "_END_TIME = ?", new String[]{
+                    sessionTimeFormat.format(endTimes.get(endTimes.size() - 1))});
+        }
+
         dbWrite.insert(day, null, values);
         dbWrite.close();
     }
@@ -246,6 +259,26 @@ public class DBHandler extends SQLiteOpenHelper{
         c.close();
 
         return endTimes;
+    }
+
+
+    //time Until next
+    public List<Integer> getMinutesUntilNext(String day){
+
+        List<Integer> timeUntilNext = new ArrayList<>();
+
+        SQLiteDatabase dbRead = getReadableDatabase();
+        Cursor c = dbRead.rawQuery("SELECT _TIME_UNTIL_NEXT FROM " + day + " WHERE 1", null);
+
+        c.moveToFirst();
+
+        while(!c.isAfterLast()){
+            timeUntilNext.add(c.getInt(0));
+            c.moveToNext();
+        }
+
+        c.close();
+        return timeUntilNext;
     }
 
 
