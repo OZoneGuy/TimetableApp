@@ -27,9 +27,11 @@ import java.util.List;
 public class Timetable extends AppCompatActivity{
 
 
+    @SuppressWarnings("FieldCanBeLocal")
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
 
+    @SuppressWarnings("FieldCanBeLocal")
     private ViewPager mViewPager;
 
 
@@ -155,6 +157,7 @@ public class Timetable extends AppCompatActivity{
 
             //initialise views and variables
             recyclerView = (RecyclerView) rootView.findViewById(R.id.timetable);
+
             timetableAdaptor = new TimetableAdaptor(sessionNames, sessionStart, sessionEnd,
                                                     timeUntilNext);
 

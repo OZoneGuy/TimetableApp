@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -231,6 +232,17 @@ public class DBHandler extends SQLiteOpenHelper{
             c.moveToNext();
         }
 
+
+        Calendar calendar    = Calendar.getInstance();
+        Calendar oldCalendar = Calendar.getInstance();
+
+        for(int i = 0; i < startTimes.size(); i++){
+            oldCalendar.setTime(startTimes.get(i));
+            calendar.set(Calendar.HOUR_OF_DAY, oldCalendar.get(Calendar.HOUR_OF_DAY));
+            calendar.set(Calendar.MINUTE, oldCalendar.get(Calendar.MINUTE));
+            startTimes.set(i, calendar.getTime());
+        }
+
         c.close();
 
         return startTimes;
@@ -247,6 +259,7 @@ public class DBHandler extends SQLiteOpenHelper{
 
         c.moveToFirst();
 
+
         while(!c.isAfterLast()){
             try {
                 endTimes.add(sessionTimeFormat.parse(c.getString(0)));
@@ -254,6 +267,16 @@ public class DBHandler extends SQLiteOpenHelper{
                 e.printStackTrace();
             }
             c.moveToNext();
+        }
+
+        Calendar calendar    = Calendar.getInstance();
+        Calendar oldCalendar = Calendar.getInstance();
+
+        for(int i = 0; i < endTimes.size(); i++){
+            oldCalendar.setTime(endTimes.get(i));
+            calendar.set(Calendar.HOUR_OF_DAY, oldCalendar.get(Calendar.HOUR_OF_DAY));
+            calendar.set(Calendar.MINUTE, oldCalendar.get(Calendar.MINUTE));
+            endTimes.set(i, calendar.getTime());
         }
 
         c.close();
