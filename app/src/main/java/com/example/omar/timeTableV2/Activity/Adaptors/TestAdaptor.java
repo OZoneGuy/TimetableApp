@@ -20,22 +20,23 @@ import java.util.List;
 import java.util.Locale;
 
 
-public class TimetableAdaptor extends RecyclerView.Adapter<TimetableAdaptor.ViewHolder>{
+@SuppressWarnings("unused")
+public class TestAdaptor extends RecyclerView.Adapter<TestAdaptor.ViewHolder>{
 
     private List<String>  sessionNames;
     private List<Integer> timeUntilNext;
     private List<Date>    startTimes;
     private List<Date>    endTimes;
     private int           sessionCount;
-    private boolean       currentDay;
 
     private Context context;
+
 
     private SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.US);
 
 
-    public TimetableAdaptor(List<String> sessionNames, List<Date> startTimes, List<Date> endTimes,
-                            List<Integer> timeUntilNext){
+    public TestAdaptor(List<String> sessionNames, List<Date> startTimes, List<Date> endTimes,
+                       List<Integer> timeUntilNext){
 
         this.sessionNames = sessionNames;
         this.startTimes = startTimes;
@@ -68,11 +69,12 @@ public class TimetableAdaptor extends RecyclerView.Adapter<TimetableAdaptor.View
         setBottomMargin(holder.root, position);
         setHeight(holder.root, position);
 
-        if(position == getCurrentSession() && currentDay){
+        if(position == getCurrentSession()){
             holder.indicator.setVisibility(View.VISIBLE);
         }
 
         setLine(holder.line, position);
+
     }
 
 
@@ -152,7 +154,7 @@ public class TimetableAdaptor extends RecyclerView.Adapter<TimetableAdaptor.View
     }
 
 
-    public int getCurrentSession(){
+    private int getCurrentSession(){
 
         Calendar c = Calendar.getInstance();
 
@@ -171,11 +173,6 @@ public class TimetableAdaptor extends RecyclerView.Adapter<TimetableAdaptor.View
         return sessionCount;
     }
 
-
-    public void setCurrentDay(boolean b){
-
-        currentDay = b;
-    }
 
     class ViewHolder extends RecyclerView.ViewHolder{
 

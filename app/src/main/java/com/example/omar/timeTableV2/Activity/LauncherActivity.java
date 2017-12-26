@@ -54,8 +54,6 @@ public class LauncherActivity extends AppCompatActivity{
             @Override
             public void run(){
 
-                miscData.doneSetup(LauncherActivity.this);
-
                 if(miscData.isDone(LauncherActivity.this)){
                     message.obj = "yes";
                     handler.sendMessage(message);

@@ -16,10 +16,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.omar.timeTableV2.Activity.Adaptors.TestAdaptor;
 import com.example.omar.timeTableV2.Activity.Adaptors.TimetableAdaptor;
 import com.example.omar.timeTableV2.DBHandler;
 import com.example.omar.timeTableV2.R;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -49,18 +51,18 @@ public class Timetable extends AppCompatActivity{
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
+        mViewPager.setCurrentItem(Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1);
 
+        //set up tabs
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout
                 .addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
-
         tabLayout.removeAllTabs();
-
         for(int i = 1; i <= mSectionsPagerAdapter.getCount(); i++){
             tabLayout.addTab(tabLayout.newTab().setText(getDay(i)));
         }
+
 
     }
 
@@ -123,6 +125,9 @@ public class Timetable extends AppCompatActivity{
         private List<Date>    sessionEnd;
         private List<Integer> timeUntilNext;
 
+        private boolean isTest = false;
+        private TestAdaptor testAdaptor;
+
 
         public PlaceholderFragment(){
 
@@ -158,12 +163,21 @@ public class Timetable extends AppCompatActivity{
             //initialise views and variables
             recyclerView = (RecyclerView) rootView.findViewById(R.id.timetable);
 
-            timetableAdaptor = new TimetableAdaptor(sessionNames, sessionStart, sessionEnd,
-                                                    timeUntilNext);
-
             //connect adaptor to recycler view
-            recyclerView.setAdapter(timetableAdaptor);
+            if(isTest){
+                testAdaptor = new TestAdaptor(sessionNames, sessionStart, sessionEnd,
+                                              timeUntilNext);
+                recyclerView.setAdapter(testAdaptor);
+            } else{
+                timetableAdaptor = new TimetableAdaptor(sessionNames, sessionStart, sessionEnd,
+                                                        timeUntilNext);
+                recyclerView.setAdapter(timetableAdaptor);
+            }
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            recyclerView.getLayoutManager().scrollToPosition(timetableAdaptor.getCurrentSession());
+
+            timetableAdaptor.setCurrentDay((Calendar.getInstance().get(Calendar.DAY_OF_WEEK)) ==
+                                           getArguments().getInt(ARG_SECTION_NUMBER));
 
             return rootView;
         }
